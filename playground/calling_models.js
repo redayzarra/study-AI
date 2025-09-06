@@ -10,11 +10,17 @@ const client = new OpenAI({
   apiKey: apiKey
 });
 
-const response = await client.responses.create({
+// Async iterable
+const stream = await client.responses.create({
   model: "gpt-3.5-turbo",
   input: "Write a story about a garden",
   temperature: 0.7,
-  max_output_tokens: 100
+  max_output_tokens: 100,
+  stream: true
 })
 
-console.log(response);
+for await (const response of stream) {
+  if (response.delta) {
+    process.stdout.write(response.delta);
+  }
+}
