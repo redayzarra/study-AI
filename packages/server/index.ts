@@ -11,7 +11,14 @@ const port = process.env.PORT || 3000;
 
 // Create a basic endpoint at homepage that responds with text when visited in browser 
 app.get("/", (request: Request, response: Response) => {
-  response.send(process.env.OPENAI_API_KEY);
+  response.send("Goodbye world.");
+})
+
+// Create a basic endpoint at homepage that responds with text when visited in browser 
+app.get("/api/hello", (request: Request, response: Response) => {
+  response.json({
+    message: "Hello world!"
+  })
 })
 
 // Botts up the Express web server on the port we defined earlier
