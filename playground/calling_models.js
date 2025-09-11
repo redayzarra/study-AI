@@ -2,12 +2,12 @@ import dotenv from "dotenv";
 import { OpenAI } from "openai";
 
 // Load the .env config
-dotenv.config()
+dotenv.config();
 
 const apiKey = process.env.OPENAI_API_KEY;
 
 const client = new OpenAI({
-  apiKey: apiKey
+  apiKey: apiKey,
 });
 
 // Async iterable
@@ -16,8 +16,8 @@ const stream = await client.responses.create({
   input: "Write a story about a garden",
   temperature: 0.7,
   max_output_tokens: 100,
-  stream: true
-})
+  stream: true,
+});
 
 for await (const response of stream) {
   if (response.delta) {
