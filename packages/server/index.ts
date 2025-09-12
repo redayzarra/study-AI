@@ -29,9 +29,6 @@ app.get("/api/hello", (req: Request, res: Response) => {
   });
 });
 
-// Storing responseId for persistent memory during conversations
-let lastResponseId: string | null = null;
-
 // Mapping conversationId -> lastResponseId
 const conversations = new Map<string, string>();
 
