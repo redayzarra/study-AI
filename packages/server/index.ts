@@ -40,31 +40,37 @@ const chatSchema = z.object({
     .trim()
     .min(1, "Prompt is required")
     .max(1000, "Prompt is too long. Max 100 characters"),
-  converstationId: z.string().uuid(),
+  converstationId: z.uuid(),
 });
 
 app.post("/api/chat", async (req: Request, res: Response) => {
   // Parse the result first
   const parseResult = chatSchema.safeParse(req.body);
 
-  if (!parseResult.success) {
+  if (parseResult.error) {
     res.status(400).json(z.treeifyError(parseResult.error));
     return;
   }
 
-  const { prompt, conversationId } = req.body;
+  try {
+    const { prompt, conversationId } = req.body;
+    const response = await client.responses.create({
+      model: "gpt-4o-minik",
+      input: prompt,
+      temperature: 0.1,
+      max_output_tokens: 100,
+      previous_response_id: conversations.get(conversationId),
+    });
 
-  const response = await client.responses.create({
-    model: "gpt-4o-mini",
-    input: prompt,
-    temperature: 0.1,
-    max_output_tokens: 100,
-    previous_response_id: conversations.get(conversationId),
-  });
+    conversations.set(conversationId, response.id);
 
-  conversations.set(conversationId, response.id);
-
-  res.json({ message: response.output_text });
+    res.json({ message: response.output_text });
+  } catch (error) {
+    // Set the status to "internal server error"
+    res.status(500).json({
+      error: "Failed to generate a response.",
+    });
+  }
 });
 
 // Botts up the Express web server on the port we defined earlier
