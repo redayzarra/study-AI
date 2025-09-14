@@ -1,17 +1,11 @@
-import express from "express";
-import type { Request, Response } from "express";
 import dotenv from "dotenv";
-import OpenAI from "openai";
+import type { Request, Response } from "express";
+import express from "express";
 import z from "zod";
-import { conversationRepository } from "./repositories/conversation.respository";
+import { chatService } from "./services/chat.service";
 
 // Load the .env config
 dotenv.config();
-
-// Creating a new OpenAI client
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 // Create an express app and define the port to host the webserver
 const app = express();
@@ -52,18 +46,9 @@ app.post("/api/chat", async (req: Request, res: Response) => {
 
   try {
     const { prompt, conversationId } = req.body;
-    const response = await client.responses.create({
-      model: "gpt-4o-minik",
-      input: prompt,
-      temperature: 0.1,
-      max_output_tokens: 100,
-      previous_response_id:
-        conversationRepository.getLastResponseId(conversationId),
-    });
+    const response = await chatService.sendMessage(prompt, conversationId);
 
-    conversationRepository.setLastResponseId(conversationId, response.id);
-
-    res.json({ message: response.output_text });
+    res.json({ message: response.message });
   } catch (error) {
     // Set the status to "internal server error"
     res.status(500).json({
