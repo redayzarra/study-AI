@@ -20,8 +20,8 @@ export const chatService = {
         const response = await client.responses.create({
             model: "gpt-4o-mini",
             input: prompt,
-            temperature: 0.1,
-            max_output_tokens: 100,
+            temperature: 0.2,
+            max_output_tokens: 200,
             previous_response_id:
                 conversationRepository.getLastResponseId(conversationId),
         });

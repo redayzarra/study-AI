@@ -4,6 +4,7 @@ import axios from "axios";
 import { Textarea } from "./ui/textarea";
 import { useForm } from "react-hook-form";
 import { useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 type FormData = {
     prompt: string;
@@ -22,6 +23,9 @@ const ChatBot = () => {
     // Create messages using useState, initialize to an empty array
     const [messages, setMessages] = useState<Message[]>([]);
 
+    // Create a state to check if the bot is typing
+    const [isTyping, setIsTyping] = useState(false);
+
     // Create a conversationId using crypto (available in all browsers) using "useRef" since this is constant
     const conversationId = useRef(crypto.randomUUID());
 
@@ -31,15 +35,19 @@ const ChatBot = () => {
     // onSubmit Function: Starts by resetting the chat and then calls the backend
     const onSubmit = async ({ prompt }: FormData) => {
         setMessages((prev) => [...prev, { content: prompt, role: "User" }]);
+        setIsTyping(true);
         reset();
+
         const { data } = await axios.post<ChatResponse>("/api/chat", {
             prompt,
             conversationId: conversationId.current,
         });
+
         setMessages((prev) => [
             ...prev,
             { content: data.message, role: "Bot" },
         ]);
+        setIsTyping(false);
     };
 
     // onKeyDown: Allows users to click enter to call onSubmit
@@ -62,9 +70,16 @@ const ChatBot = () => {
                         }`}
                         key={index}
                     >
-                        {message.content}
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
                     </p>
                 ))}
+                {isTyping && (
+                    <div className="flex self-start gap-1 px-3 py-3 bg-gray-200 rounded-xl">
+                        <div className="w-2 h-2 rounded-full bg-gray-600 animate-pulse"></div>
+                        <div className="w-2 h-2 rounded-full bg-gray-600 animate-pulse [animation-delay:0.2s]"></div>
+                        <div className="w-2 h-2 rounded-full bg-gray-600 animate-pulse [animation-delay:0.4s]"></div>
+                    </div>
+                )}
             </div>
             <form
                 onSubmit={handleSubmit(onSubmit)}
