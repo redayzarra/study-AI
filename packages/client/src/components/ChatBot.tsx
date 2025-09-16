@@ -13,9 +13,14 @@ type ChatResponse = {
     message: string;
 };
 
+type Message = {
+    content: string;
+    role: "User" | "Bot";
+};
+
 const ChatBot = () => {
     // Create messages using useState, initialize to an empty array
-    const [messages, setMessages] = useState<string[]>([]);
+    const [messages, setMessages] = useState<Message[]>([]);
 
     // Create a conversationId using crypto (available in all browsers) using "useRef" since this is constant
     const conversationId = useRef(crypto.randomUUID());
@@ -25,13 +30,16 @@ const ChatBot = () => {
 
     // onSubmit Function: Starts by resetting the chat and then calls the backend
     const onSubmit = async ({ prompt }: FormData) => {
-        setMessages((prev) => [...prev, prompt]);
+        setMessages((prev) => [...prev, { content: prompt, role: "User" }]);
         reset();
         const { data } = await axios.post<ChatResponse>("/api/chat", {
             prompt,
             conversationId: conversationId.current,
         });
-        setMessages((prev) => [...prev, data.message]);
+        setMessages((prev) => [
+            ...prev,
+            { content: data.message, role: "Bot" },
+        ]);
     };
 
     // onKeyDown: Allows users to click enter to call onSubmit
@@ -44,10 +52,17 @@ const ChatBot = () => {
 
     return (
         <div className="">
-            <div className="">
+            <div className="flex flex-col gap-3 mb-10">
                 {messages.map((message, index) => (
-                    <p className="" key={index}>
-                        {message}
+                    <p
+                        className={`px-3 py-1 rounded-xl ${
+                            message.role === "User"
+                                ? "bg-blue-500 text-white self-end max-w-xl"
+                                : "text-black"
+                        }`}
+                        key={index}
+                    >
+                        {message.content}
                     </p>
                 ))}
             </div>
