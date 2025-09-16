@@ -10,10 +10,13 @@ type FormData = {
 };
 
 const ChatBot = () => {
+    // Create a conversationId using crypto (available in all browsers) using "useRef" since this is constant
     const conversationId = useRef(crypto.randomUUID());
 
+    // Extract helpful functions from React.useForm
     const { register, handleSubmit, reset, formState } = useForm<FormData>({});
 
+    // onSubmit Function: Starts by resetting the chat and then calls the backend
     const onSubmit = async ({ prompt }: FormData) => {
         reset();
         const { data } = await axios.post("/api/chat", {
@@ -23,6 +26,7 @@ const ChatBot = () => {
         console.log(data);
     };
 
+    // onKeyDown: Allows users to click enter to call onSubmit
     const onKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();

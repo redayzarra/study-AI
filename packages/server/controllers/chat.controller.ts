@@ -8,19 +8,18 @@ const chatSchema = z.object({
         .string()
         .trim()
         .min(1, "Prompt is required")
-        .max(1000, "Prompt is too long. Max 100 characters"),
-    converstationId: z.uuid(),
+        .max(1000, "Prompt is too long. Max 1000 characters"),
+    conversationId: z.uuid(),
 });
 
 export const chatController = {
     async sendMessage(req: Request, res: Response) {
         // Parse the result first
-        const parseResult = chatSchema.safeParse(req.body);
+        const result = chatSchema.safeParse(req.body);
 
         // Check if we have an error
-        if (parseResult.error) {
-            res.status(400).json(z.treeifyError(parseResult.error));
-            return;
+        if (!result.success) {
+            return res.status(400).json(z.treeifyError(result.error));
         }
 
         try {
