@@ -2,9 +2,7 @@ import OpenAI from "openai";
 import { conversationRepository } from "../repositories/conversation.respository";
 
 // Creating a new OpenAI client
-const client = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 interface ChatResponse {
     id: string;
@@ -29,9 +27,6 @@ export const chatService = {
         conversationRepository.setLastResponseId(conversationId, response.id);
 
         // Return a ChatResponse
-        return {
-            id: response.id,
-            message: response.output_text,
-        };
+        return { id: response.id, message: response.output_text };
     },
 };

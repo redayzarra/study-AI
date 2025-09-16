@@ -6,9 +6,7 @@ dotenv.config();
 
 const apiKey = process.env.OPENAI_API_KEY;
 
-const client = new OpenAI({
-    apiKey: apiKey,
-});
+const client = new OpenAI({ apiKey: apiKey });
 
 // Async iterable
 const stream = await client.responses.create({

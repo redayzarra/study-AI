@@ -11,9 +11,7 @@ router.get("/", (req: Request, res: Response) => {
 
 // Create a basic endpoint at homepage that responds with text when visited in browser
 router.get("/api/hello", (req: Request, res: Response) => {
-    res.json({
-        message: "Hello world!",
-    });
+    res.json({ message: "Hello world!" });
 });
 
 router.post("/api/chat", chatController.sendMessage);

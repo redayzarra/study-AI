@@ -2,7 +2,7 @@ import ChatBot from "./components/ChatBot";
 
 function App() {
     return (
-        <div className="p-4 mx-28">
+        <div className="p-4 mx-28 h-screen">
             <ChatBot />
         </div>
     );

@@ -36,9 +36,7 @@ export const chatController = {
             res.status(200).json({ message: response.message });
         } catch (error) {
             // Set the status to "internal server error"
-            res.status(500).json({
-                error: "Failed to generate a response.",
-            });
+            res.status(500).json({ error: "Failed to generate a response." });
         }
     },
 };

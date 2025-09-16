@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 import axios from "axios";
 import { Textarea } from "./ui/textarea";
 import { useForm } from "react-hook-form";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 type FormData = {
@@ -26,17 +26,24 @@ const ChatBot = () => {
     // Create a state to check if the bot is typing
     const [isTyping, setIsTyping] = useState(false);
 
+    // Adding new variable to track the latest message and auto-scroll
+    const lastMessageRef = useRef<HTMLDivElement | null>(null);
+
     // Create a conversationId using crypto (available in all browsers) using "useRef" since this is constant
     const conversationId = useRef(crypto.randomUUID());
 
     // Extract helpful functions from React.useForm
     const { register, handleSubmit, reset, formState } = useForm<FormData>({});
 
+    useEffect(() => {
+        lastMessageRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
+
     // onSubmit Function: Starts by resetting the chat and then calls the backend
     const onSubmit = async ({ prompt }: FormData) => {
         setMessages((prev) => [...prev, { content: prompt, role: "User" }]);
         setIsTyping(true);
-        reset();
+        reset({ prompt: "" });
 
         const { data } = await axios.post<ChatResponse>("/api/chat", {
             prompt,
@@ -58,20 +65,34 @@ const ChatBot = () => {
         }
     };
 
+    // onCopyMessage: Allow users to cleanly copy messages from our UI without fuss
+    const onCopyMessage = (e: React.ClipboardEvent<HTMLParagraphElement>) => {
+        const selection = window.getSelection()?.toString().trim();
+        if (selection) {
+            e.preventDefault();
+            e.clipboardData.setData("text/plain", selection);
+        }
+    };
+
     return (
-        <div className="">
-            <div className="flex flex-col gap-3 mb-10">
+        <div className="flex flex-col h-full">
+            <div className="flex flex-col flex-1 gap-3 mb-10 overflow-y-auto scroll-smooth">
                 {messages.map((message, index) => (
-                    <p
+                    <div
                         className={`px-3 py-1 rounded-xl ${
                             message.role === "User"
                                 ? "bg-blue-500 text-white self-end max-w-xl"
                                 : "text-black"
                         }`}
+                        onCopy={onCopyMessage}
                         key={index}
-                    >
+                        ref={
+                            index === messages.length - 1
+                                ? lastMessageRef
+                                : null
+                        }>
                         <ReactMarkdown>{message.content}</ReactMarkdown>
-                    </p>
+                    </div>
                 ))}
                 {isTyping && (
                     <div className="flex self-start gap-1 px-3 py-3 bg-gray-200 rounded-xl">
@@ -84,8 +105,7 @@ const ChatBot = () => {
             <form
                 onSubmit={handleSubmit(onSubmit)}
                 onKeyDown={onKeyDown}
-                className="flex flex-col gap-2 items-end border-2 p-4 rounded-3xl"
-            >
+                className="flex flex-col gap-2 items-end border-2 p-4 rounded-3xl">
                 <Textarea
                     {...register("prompt", {
                         required: true,
@@ -94,11 +114,11 @@ const ChatBot = () => {
                     className="w-full border-0 focus-visible:ring-0 resize-none shadow-none"
                     placeholder="Ask me anything..."
                     maxLength={1000}
+                    autoFocus
                 />
                 <Button
                     disabled={!formState.isValid}
-                    className="rounded-full cursor-pointer shadow-sm w-9 h-9"
-                >
+                    className="rounded-full cursor-pointer shadow-sm w-9 h-9">
                     <FaArrowUp className="" />
                 </Button>
             </form>
