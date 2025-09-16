@@ -16,7 +16,6 @@ const ChatBot = () => {
     };
 
     const onKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
-        git;
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             handleSubmit(onSubmit)();
