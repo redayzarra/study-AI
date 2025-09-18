@@ -3,10 +3,18 @@ import { useRef, useState } from "react";
 import ChatInput, { type ChatFormData } from "./ChatInput";
 import ChatMessages, { type Message } from "./ChatMessages";
 import TypingIndicator from "./TypingIndicator";
+import popSound from "@/assets/sounds/pop.mp3";
+import notificationSound from "@/assets/sounds/notification.mp3";
 
 type ChatResponse = {
     message: string;
 };
+
+const popAudio = new Audio(popSound);
+popAudio.volume = 0.5;
+
+const notificationAudio = new Audio(notificationSound);
+notificationAudio.volume = 0.3;
 
 const ChatBot = () => {
     // Create a conversationId using crypto (available in all browsers) using "useRef" since this is constant
@@ -24,6 +32,8 @@ const ChatBot = () => {
     // onSubmit Function: Starts by resetting the chat and then calls the backend
     const onSubmit = async ({ prompt }: ChatFormData) => {
         try {
+            popAudio.play();
+
             // Add the prompt from the user to the messages, set typing to true and reset the error
             setMessages((prev) => [...prev, { content: prompt, role: "User" }]);
             setIsTyping(true);
@@ -40,6 +50,8 @@ const ChatBot = () => {
                 ...prev,
                 { content: data.message, role: "Bot" },
             ]);
+
+            notificationAudio.play();
         } catch (error) {
             // Log the error and set the error state so we can display it
             console.error(error);
