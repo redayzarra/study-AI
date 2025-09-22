@@ -1,9 +1,6 @@
-import OpenAI from "openai";
 import { type Review } from "../generated/prisma";
+import { LLM } from "../llm/client";
 import { reviewRepository } from "../repositories/review.repository";
-
-// Create an OpenAI client with our API key
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export const reviewService = {
     // getReviews: Allows us the fetch the reviews for a specific product given it's ID
@@ -22,12 +19,12 @@ export const reviewService = {
             ${joinedReviews}
         `;
 
-        const response = await client.responses.create({
+        const response = await LLM.generateText({
             model: "gpt-5",
-            input: prompt,
-            max_output_tokens: 500,
+            prompt,
+            maxTokens: 500,
         });
 
-        return response.output_text;
+        return response.text;
     },
 };

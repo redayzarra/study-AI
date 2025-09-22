@@ -1,11 +1,8 @@
 import fs from "fs";
 import path from "path";
-import OpenAI from "openai";
 import { conversationRepository } from "../repositories/conversation.respository";
 import template from "../prompts/chatbot.txt";
-
-// Creating a new OpenAI client
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+import { LLM } from "../llm/client";
 
 // Get the informational markdown file from prompts/ directory then add it to our chatbot prompt
 const parkInfo = fs.readFileSync(
@@ -25,19 +22,19 @@ export const chatService = {
         prompt: string,
         conversationId: string
     ): Promise<ChatResponse> {
-        const response = await client.responses.create({
+        const response = await LLM.generateText({
             model: "gpt-4o-mini",
             instructions,
-            input: prompt,
+            prompt,
             temperature: 0.2,
-            max_output_tokens: 200,
-            previous_response_id:
+            maxTokens: 200,
+            previousResponseId:
                 conversationRepository.getLastResponseId(conversationId),
         });
 
         conversationRepository.setLastResponseId(conversationId, response.id);
 
         // Return a ChatResponse
-        return { id: response.id, message: response.output_text };
+        return { id: response.id, message: response.text };
     },
 };
