@@ -24,7 +24,7 @@ export const reviewRepository = {
             productId,
         };
 
-        prisma.summary.upsert({
+        return prisma.summary.upsert({
             where: { productId },
             create: data,
             update: data,
