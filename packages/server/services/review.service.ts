@@ -10,6 +10,11 @@ export const reviewService = {
     },
     // summarizeReviews: Summarizes the reviews for a specific product given it's ID
     async summarizeReviews(productId: number): Promise<string> {
+        const existingSummary =
+            await reviewRepository.getReviewSummary(productId);
+        if (existingSummary && existingSummary.expiresAt > new Date()) {
+            return existingSummary.content;
+        }
         const reviews = await reviewRepository.getReviews(productId, 10);
         const joinedReviews = reviews.map((rev) => rev.content).join("\n\n");
 
