@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { reviewService } from "../services/review.service";
 import { productRepository } from "../repositories/product.repository";
+import { reviewRepository } from "../repositories/review.repository";
 
 export const reviewController = {
     async getReviews(req: Request, res: Response) {
@@ -18,6 +19,15 @@ export const reviewController = {
         if (!product) {
             res.status(400).json({
                 error: `Invalid productId: ${productId} doesn't exist.`,
+            });
+            return;
+        }
+
+        // Check to make sure that the product has at least one review
+        const checkReview = await reviewRepository.getReviews(productId, 1);
+        if (!checkReview.length) {
+            res.status(400).json({
+                error: "There are no reviews to summarize.",
             });
             return;
         }
