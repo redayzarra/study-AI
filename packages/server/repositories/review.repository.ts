@@ -5,15 +5,15 @@ import { PrismaClient, type Review } from "../generated/prisma";
 const prisma = new PrismaClient();
 
 export const reviewRepository = {
+    // Return a list of reviews based on the productId, in descending order
     async getReviews(productId: number, limit?: number): Promise<Review[]> {
-        // Return a list of reviews based on the productId, in descending order
         return prisma.review.findMany({
             where: { productId },
             orderBy: { createdAt: "desc" },
             take: limit,
         });
     },
-
+    // Store the generated review and add an expiration date, one week into the future
     storeReviewSummary(productId: number, summary: string) {
         const now = new Date();
         const expiresAt = dayjs().add(7, "days").toDate();
@@ -30,10 +30,14 @@ export const reviewRepository = {
             update: data,
         });
     },
-
-    getReviewSummary(productId: number) {
-        return prisma.summary.findUnique({
-            where: { productId },
+    // Get a valid summary for a productId if it exists
+    async getReviewSummary(productId: number): Promise<string | null> {
+        const summary = await prisma.summary.findFirst({
+            where: {
+                AND: [{ productId }, { expiresAt: { gt: new Date() } }],
+            },
         });
+
+        return summary ? summary.content : null;
     },
 };
