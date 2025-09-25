@@ -33,12 +33,12 @@ const ReviewList = ({ productId }: ReviewListProps) => {
     }, []);
 
     return (
-        <div>
+        <div className="flex flex-col gap-5">
             {reviewData?.reviews.map((review) => (
                 <div key={review.id}>
-                    <div>{review.author}</div>
+                    <div className="font-semibold">{review.author}</div>
                     <div>Rating: {review.rating}/5</div>
-                    <p>{review.content}</p>
+                    <p className="py-2">{review.content}</p>
                 </div>
             ))}
         </div>
