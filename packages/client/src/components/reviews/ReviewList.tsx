@@ -21,17 +21,24 @@ type GetReviewsResponse = {
 
 const ReviewList = ({ productId }: ReviewListProps) => {
     const [reviewData, setReviewData] = useState<GetReviewsResponse>();
+    const [isLoading, setIsLoading] = useState(false);
 
     const fetchReviews = async () => {
+        setIsLoading(true);
         const { data } = await axios.get<GetReviewsResponse>(
             `/api/products/${productId}/reviews`
         );
         setReviewData(data);
+        setIsLoading(false);
     };
 
     useEffect(() => {
         fetchReviews();
     }, []);
+
+    if (isLoading) {
+        return <p>Loading message</p>;
+    }
 
     return (
         <div className="flex flex-col gap-5">
