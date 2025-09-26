@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import Skeleton from "react-loading-skeleton";
 import StarRating from "./StarRating";
 
 type ReviewListProps = {
@@ -37,7 +38,17 @@ const ReviewList = ({ productId }: ReviewListProps) => {
     }, []);
 
     if (isLoading) {
-        return <p>Loading message</p>;
+        return (
+            <div className="flex flex-col gap-5">
+                {[1, 2, 3].map((placeholder) => (
+                    <div key={placeholder}>
+                        <Skeleton width={150} />
+                        <Skeleton width={100} />
+                        <Skeleton count={2} />
+                    </div>
+                ))}
+            </div>
+        );
     }
 
     return (
