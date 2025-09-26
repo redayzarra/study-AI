@@ -1,7 +1,10 @@
 import axios from "axios";
-import Skeleton from "react-loading-skeleton";
 import StarRating from "./StarRating";
 import { useQuery } from "@tanstack/react-query";
+import { HiSparkles } from "react-icons/hi2";
+import { Button } from "../ui/button";
+import { useState } from "react";
+import ReviewSkeleton from "./ReviewSkeleton";
 
 type ReviewListProps = {
     productId: number;
@@ -20,7 +23,14 @@ type GetReviewsResponse = {
     reviews: Review[];
 };
 
+type SummarizeResponse = {
+    summary: string;
+};
+
 const ReviewList = ({ productId }: ReviewListProps) => {
+    const [summary, setSummary] = useState("");
+    const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+
     const {
         data: reviewData,
         isLoading,
@@ -29,6 +39,15 @@ const ReviewList = ({ productId }: ReviewListProps) => {
         queryKey: ["reviews", productId],
         queryFn: () => fetchReviews(),
     });
+
+    const handleSummarize = async () => {
+        setIsSummaryLoading(true);
+        const { data } = await axios.post<SummarizeResponse>(
+            `/api/products/${productId}/reviews/summarize`
+        );
+        setSummary(data.summary);
+        setIsSummaryLoading(false);
+    };
 
     const fetchReviews = async () => {
         const { data } = await axios.get<GetReviewsResponse>(
@@ -49,27 +68,48 @@ const ReviewList = ({ productId }: ReviewListProps) => {
         return (
             <div className="flex flex-col gap-5">
                 {[1, 2, 3].map((placeholder) => (
-                    <div key={placeholder}>
-                        <Skeleton width={150} />
-                        <Skeleton width={100} />
-                        <Skeleton count={2} />
-                    </div>
+                    <ReviewSkeleton key={placeholder} />
                 ))}
             </div>
         );
     }
 
+    const currentSummary = reviewData?.summary || summary;
+
+    if (!reviewData?.reviews.length) {
+        return <p>There are no reviews.</p>;
+    }
+
     return (
-        <div className="flex flex-col gap-5">
-            {reviewData?.reviews.map((review) => (
-                <div key={review.id}>
-                    <div className="font-semibold">{review.author}</div>
-                    <div>
-                        <StarRating value={review.rating} />
+        <div className="">
+            <div className="mb-5">
+                {currentSummary ? (
+                    <p>{currentSummary}</p>
+                ) : (
+                    <div className="">
+                        <Button
+                            onClick={handleSummarize}
+                            className="cursor-pointer"
+                            disabled={isSummaryLoading}>
+                            <HiSparkles /> Summarize
+                        </Button>
+                        <div className="py-3">
+                            {isSummaryLoading && <ReviewSkeleton />}
+                        </div>
                     </div>
-                    <p className="py-2">{review.content}</p>
-                </div>
-            ))}
+                )}
+            </div>
+            <div className="flex flex-col gap-5">
+                {reviewData?.reviews.map((review) => (
+                    <div key={review.id}>
+                        <div className="font-semibold">{review.author}</div>
+                        <div>
+                            <StarRating value={review.rating} />
+                        </div>
+                        <p className="py-2">{review.content}</p>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };
