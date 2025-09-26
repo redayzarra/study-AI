@@ -1,5 +1,4 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import StarRating from "./StarRating";
 import { useQuery } from "@tanstack/react-query";
@@ -39,7 +38,11 @@ const ReviewList = ({ productId }: ReviewListProps) => {
     };
 
     if (error) {
-        return <p className="text-red-500">{error.message}</p>;
+        return (
+            <p className="text-red-500">
+                Could not fetch reviews, please try again later!
+            </p>
+        );
     }
 
     if (isLoading) {
