@@ -30,7 +30,9 @@ type SummarizeResponse = {
 const ReviewList = ({ productId }: ReviewListProps) => {
     const [summary, setSummary] = useState("");
     const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+    const [summaryError, setSummaryError] = useState("");
 
+    // Fetch the reviews for the product
     const {
         data: reviewData,
         isLoading,
@@ -40,15 +42,29 @@ const ReviewList = ({ productId }: ReviewListProps) => {
         queryFn: () => fetchReviews(),
     });
 
+    // handleSummarize: Responsible for summarizing the reviews from a productId
     const handleSummarize = async () => {
-        setIsSummaryLoading(true);
-        const { data } = await axios.post<SummarizeResponse>(
-            `/api/products/${productId}/reviews/summarize`
-        );
-        setSummary(data.summary);
-        setIsSummaryLoading(false);
+        try {
+            // Reset the summary loading state and error
+            setIsSummaryLoading(true);
+            setSummaryError("");
+
+            // Use axios to call the backend and get the product summary
+            const { data } = await axios.post<SummarizeResponse>(
+                `/api/products/${productId}/reviews/summarize`
+            );
+
+            // Set the current summary to the summary we fetched
+            setSummary(data.summary);
+        } catch (error) {
+            // Error handling
+            console.log(error);
+        } finally {
+            setIsSummaryLoading(false);
+        }
     };
 
+    // fetchReviews: Responsible for fetching the reviews from given productId
     const fetchReviews = async () => {
         const { data } = await axios.get<GetReviewsResponse>(
             `/api/products/${productId}/reviews`
@@ -56,6 +72,7 @@ const ReviewList = ({ productId }: ReviewListProps) => {
         return data;
     };
 
+    // If we have an error, give users an error message
     if (error) {
         return (
             <p className="text-red-500">
@@ -64,6 +81,7 @@ const ReviewList = ({ productId }: ReviewListProps) => {
         );
     }
 
+    // If we are still loading, show a loading skeleton
     if (isLoading) {
         return (
             <div className="flex flex-col gap-5">
@@ -74,8 +92,10 @@ const ReviewList = ({ productId }: ReviewListProps) => {
         );
     }
 
+    // Set the current summary to a pre-existing summary or the one we just fetched
     const currentSummary = reviewData?.summary || summary;
 
+    // If there are no reviews, then simply return that
     if (!reviewData?.reviews.length) {
         return <p>There are no reviews.</p>;
     }
