@@ -3,7 +3,6 @@ import StarRating from "./StarRating";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { HiSparkles } from "react-icons/hi2";
 import { Button } from "../ui/button";
-import { useState } from "react";
 import ReviewSkeleton from "./ReviewSkeleton";
 
 type ReviewListProps = {
@@ -29,21 +28,12 @@ type SummarizeResponse = {
 
 const ReviewList = ({ productId }: ReviewListProps) => {
     // Fetch the reviews for the product
-    const {
-        data: reviewData,
-        isLoading,
-        error,
-    } = useQuery<GetReviewsResponse>({
+    const reviewsQuery = useQuery<GetReviewsResponse>({
         queryKey: ["reviews", productId],
         queryFn: () => fetchReviews(),
     });
 
-    const {
-        mutate: handleSummarize,
-        isPending: isSummaryLoading,
-        isError: isSummaryError,
-        data: summarizeResponse,
-    } = useMutation<SummarizeResponse>({
+    const summaryMutation = useMutation<SummarizeResponse>({
         mutationFn: () => summarizeReviews(),
     });
 
@@ -65,7 +55,7 @@ const ReviewList = ({ productId }: ReviewListProps) => {
     };
 
     // If we have an error, give users an error message
-    if (error) {
+    if (reviewsQuery.isError) {
         return (
             <p className="text-red-500">
                 Could not fetch reviews, please try again later!
@@ -74,7 +64,7 @@ const ReviewList = ({ productId }: ReviewListProps) => {
     }
 
     // If we are still loading, show a loading skeleton
-    if (isLoading) {
+    if (reviewsQuery.isLoading) {
         return (
             <div className="flex flex-col gap-5">
                 {[1, 2, 3].map((placeholder) => (
@@ -85,10 +75,11 @@ const ReviewList = ({ productId }: ReviewListProps) => {
     }
 
     // Set the current summary to a pre-existing summary or the one we just fetched
-    const currentSummary = reviewData?.summary || summarizeResponse?.summary;
+    const currentSummary =
+        reviewsQuery.data?.summary || summaryMutation.data?.summary;
 
     // If there are no reviews, then simply return that
-    if (!reviewData?.reviews.length) {
+    if (!reviewsQuery.data?.reviews.length) {
         return <p>There are no reviews.</p>;
     }
 
@@ -100,17 +91,17 @@ const ReviewList = ({ productId }: ReviewListProps) => {
                 ) : (
                     <div className="">
                         <Button
-                            onClick={() => handleSummarize}
+                            onClick={() => summaryMutation.mutate()}
                             className="cursor-pointer"
-                            disabled={isSummaryLoading}>
+                            disabled={summaryMutation.isPending}>
                             <HiSparkles /> Summarize
                         </Button>
-                        {isSummaryLoading && (
+                        {summaryMutation.isPending && (
                             <div className="py-3">
                                 <ReviewSkeleton />
                             </div>
                         )}
-                        {isSummaryError && (
+                        {summaryMutation.isError && (
                             <p className="text-red-500">
                                 Could not summarize the reviews, please try
                                 again!
@@ -120,7 +111,7 @@ const ReviewList = ({ productId }: ReviewListProps) => {
                 )}
             </div>
             <div className="flex flex-col gap-5">
-                {reviewData?.reviews.map((review) => (
+                {reviewsQuery.data?.reviews.map((review) => (
                     <div key={review.id}>
                         <div className="font-semibold">{review.author}</div>
                         <div>
