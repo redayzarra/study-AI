@@ -59,7 +59,11 @@ const ReviewList = ({ productId }: ReviewListProps) => {
         } catch (error) {
             // Error handling
             console.log(error);
+            setSummaryError(
+                "Could not summarize the reviews. Please try again later!"
+            );
         } finally {
+            // Always set the summar loading state to false
             setIsSummaryLoading(false);
         }
     };
@@ -113,9 +117,14 @@ const ReviewList = ({ productId }: ReviewListProps) => {
                             disabled={isSummaryLoading}>
                             <HiSparkles /> Summarize
                         </Button>
-                        <div className="py-3">
-                            {isSummaryLoading && <ReviewSkeleton />}
-                        </div>
+                        {isSummaryLoading && (
+                            <div className="py-3">
+                                <ReviewSkeleton />
+                            </div>
+                        )}
+                        {summaryError && (
+                            <p className="text-red-500">{summaryError}</p>
+                        )}
                     </div>
                 )}
             </div>
