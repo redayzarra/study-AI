@@ -1,58 +1,28 @@
-import axios from "axios";
 import StarRating from "./StarRating";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { HiSparkles } from "react-icons/hi2";
 import { Button } from "../ui/button";
 import ReviewSkeleton from "./ReviewSkeleton";
+import {
+    reviewsApi,
+    type GetReviewsResponse,
+    type SummarizeResponse,
+} from "./reviewsApi";
 
 type ReviewListProps = {
     productId: number;
-};
-
-type Review = {
-    id: number;
-    author: string;
-    content: string;
-    rating: number;
-    createdAt: string;
-};
-
-type GetReviewsResponse = {
-    summary: string | null;
-    reviews: Review[];
-};
-
-type SummarizeResponse = {
-    summary: string;
 };
 
 const ReviewList = ({ productId }: ReviewListProps) => {
     // Fetch the reviews for the product
     const reviewsQuery = useQuery<GetReviewsResponse>({
         queryKey: ["reviews", productId],
-        queryFn: () => fetchReviews(),
+        queryFn: () => reviewsApi.fetchReviews(productId),
     });
 
     const summaryMutation = useMutation<SummarizeResponse>({
-        mutationFn: () => summarizeReviews(),
+        mutationFn: () => reviewsApi.summarizeReview(productId),
     });
-
-    // summarizeReviews: Responsible for summarizing the reviews from a productId
-    const summarizeReviews = async () => {
-        // Use axios to call the backend and get the product summary
-        const { data } = await axios.post<SummarizeResponse>(
-            `/api/products/${productId}/reviews/summarize`
-        );
-        return data;
-    };
-
-    // fetchReviews: Responsible for fetching the reviews from given productId
-    const fetchReviews = async () => {
-        const { data } = await axios.get<GetReviewsResponse>(
-            `/api/products/${productId}/reviews`
-        );
-        return data;
-    };
 
     // If we have an error, give users an error message
     if (reviewsQuery.isError) {
