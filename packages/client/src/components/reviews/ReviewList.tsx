@@ -1,6 +1,6 @@
 import axios from "axios";
 import StarRating from "./StarRating";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { HiSparkles } from "react-icons/hi2";
 import { Button } from "../ui/button";
 import { useState } from "react";
@@ -28,10 +28,6 @@ type SummarizeResponse = {
 };
 
 const ReviewList = ({ productId }: ReviewListProps) => {
-    const [summary, setSummary] = useState("");
-    const [isSummaryLoading, setIsSummaryLoading] = useState(false);
-    const [summaryError, setSummaryError] = useState("");
-
     // Fetch the reviews for the product
     const {
         data: reviewData,
@@ -42,30 +38,22 @@ const ReviewList = ({ productId }: ReviewListProps) => {
         queryFn: () => fetchReviews(),
     });
 
-    // handleSummarize: Responsible for summarizing the reviews from a productId
-    const handleSummarize = async () => {
-        try {
-            // Reset the summary loading state and error
-            setIsSummaryLoading(true);
-            setSummaryError("");
+    const {
+        mutate: handleSummarize,
+        isPending: isSummaryLoading,
+        isError: isSummaryError,
+        data: summarizeResponse,
+    } = useMutation<SummarizeResponse>({
+        mutationFn: () => summarizeReviews(),
+    });
 
-            // Use axios to call the backend and get the product summary
-            const { data } = await axios.post<SummarizeResponse>(
-                `/api/products/${productId}/reviews/summarize`
-            );
-
-            // Set the current summary to the summary we fetched
-            setSummary(data.summary);
-        } catch (error) {
-            // Error handling
-            console.log(error);
-            setSummaryError(
-                "Could not summarize the reviews. Please try again later!"
-            );
-        } finally {
-            // Always set the summar loading state to false
-            setIsSummaryLoading(false);
-        }
+    // summarizeReviews: Responsible for summarizing the reviews from a productId
+    const summarizeReviews = async () => {
+        // Use axios to call the backend and get the product summary
+        const { data } = await axios.post<SummarizeResponse>(
+            `/api/products/${productId}/reviews/summarize`
+        );
+        return data;
     };
 
     // fetchReviews: Responsible for fetching the reviews from given productId
@@ -97,7 +85,7 @@ const ReviewList = ({ productId }: ReviewListProps) => {
     }
 
     // Set the current summary to a pre-existing summary or the one we just fetched
-    const currentSummary = reviewData?.summary || summary;
+    const currentSummary = reviewData?.summary || summarizeResponse?.summary;
 
     // If there are no reviews, then simply return that
     if (!reviewData?.reviews.length) {
@@ -112,7 +100,7 @@ const ReviewList = ({ productId }: ReviewListProps) => {
                 ) : (
                     <div className="">
                         <Button
-                            onClick={handleSummarize}
+                            onClick={() => handleSummarize}
                             className="cursor-pointer"
                             disabled={isSummaryLoading}>
                             <HiSparkles /> Summarize
@@ -122,8 +110,11 @@ const ReviewList = ({ productId }: ReviewListProps) => {
                                 <ReviewSkeleton />
                             </div>
                         )}
-                        {summaryError && (
-                            <p className="text-red-500">{summaryError}</p>
+                        {isSummaryError && (
+                            <p className="text-red-500">
+                                Could not summarize the reviews, please try
+                                again!
+                            </p>
                         )}
                     </div>
                 )}
