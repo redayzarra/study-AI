@@ -1,12 +1,12 @@
 import fs from "fs";
 import path from "path";
 import { conversationRepository } from "../repositories/conversation.respository";
-import template from "../prompts/chatbot.txt";
+import template from "../llm/prompts/chatbot.txt";
 import { LLM } from "../llm/client";
 
 // Get the informational markdown file from prompts/ directory then add it to our chatbot prompt
 const parkInfo = fs.readFileSync(
-    path.join(__dirname, "..", "prompts", "WonderWorld.md"),
+    path.join(__dirname, "..", "llm", "prompts", "WonderWorld.md"),
     "utf-8"
 );
 const instructions = template.replace("{{parkInfo}}", parkInfo);

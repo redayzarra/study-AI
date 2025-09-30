@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { InferenceClient } from "@huggingface/inference";
+import summarizePrompt from "../llm/prompts/summarize-reviews.txt";
 
 // Create an OpenAI client with our API key
 const openAIClient = new OpenAI({
@@ -46,13 +47,22 @@ export const LLM = {
         };
     },
 
-    async summarize(text: string) {
-        const output = await huggingFaceClient.summarization({
-            model: "facebook/bart-large-cnn",
-            inputs: text,
-            provider: "hf-inference",
+    async summarizeReviews(text: string) {
+        const chatCompletion = await huggingFaceClient.chatCompletion({
+            provider: "sambanova",
+            model: "meta-llama/Llama-3.1-8B-Instruct",
+            messages: [
+                {
+                    role: "system",
+                    content: summarizePrompt,
+                },
+                {
+                    role: "user",
+                    content: text,
+                },
+            ],
         });
 
-        return output.summary_text;
+        return chatCompletion.choices[0]?.message.content || "";
     },
 };

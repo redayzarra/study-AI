@@ -1,6 +1,5 @@
 import { LLM } from "../llm/client";
 import { reviewRepository } from "../repositories/review.repository";
-import template from "../prompts/summarize-reviews.txt";
 
 export const reviewService = {
     // summarizeReviews: Summarizes the reviews for a specific product given it's ID
@@ -18,11 +17,8 @@ export const reviewService = {
         const reviews = await reviewRepository.getReviews(productId, 10);
         const joinedReviews = reviews.map((rev) => rev.content).join("\n\n");
 
-        // Load in our prompt and add our reviews
-        const prompt = template.replace("{{reviews}}", joinedReviews);
-
         // Call our LLM client and generate a summary
-        const summary = await LLM.summarize(joinedReviews);
+        const summary = await LLM.summarizeReviews(joinedReviews);
 
         // Store the summary in the database and return it
         await reviewRepository.storeReviewSummary(productId, summary);
