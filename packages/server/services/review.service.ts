@@ -22,11 +22,7 @@ export const reviewService = {
         const prompt = template.replace("{{reviews}}", joinedReviews);
 
         // Call our LLM client and generate a summary
-        const { text: summary } = await LLM.generateText({
-            model: "gpt-5",
-            prompt,
-            maxTokens: 500,
-        });
+        const summary = await LLM.summarize(joinedReviews);
 
         // Store the summary in the database and return it
         await reviewRepository.storeReviewSummary(productId, summary);
